@@ -1,0 +1,91 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:opencv="http://schemas.android.com/apk/res-auto"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent">
+
+    <org.opencv.android.JavaCameraView
+        android:id="@+id/surface_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:visibility="gone"
+        opencv:camera_id="any"
+        opencv:show_fps="false"/>
+
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
+
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            android:gravity="right"
+            android:orientation="vertical">
+
+
+            <LinearLayout
+                android:id="@+id/extra_buttons"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:background="@android:color/background_light"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <Button
+                    android:id="@+id/btn_pref"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="prefClick"
+                    android:text="Preferences"/>
+
+                <Button
+                    android:id="@+id/btn_clear_frames"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="clearClick"
+                    android:text="Clear Stored Frames"/>
+
+                <ToggleButton
+                    android:id="@+id/toggle_store"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:onClick="storeClick"
+                    android:textOn="Storing frames"
+                    android:textOff="Not storing frames"
+                    android:text=""/>
+                <ToggleButton
+                    android:id="@+id/toggle_split"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="false"
+                    android:onClick="splitClick"
+                    android:textOn="Split View"
+                    android:textOff="Split View"
+                    android:text=""/>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btn_showhide"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="showhideClick"
+                android:text="+"/>
+
+            <TextView
+                android:id="@+id/label_status"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/black"
+                android:text="There really should be some text here"
+                android:textColor="@android:color/background_light"
+                android:textSize="8sp"
+                android:typeface="monospace"/>
+        </LinearLayout>
+    </RelativeLayout>
+
+</FrameLayout>

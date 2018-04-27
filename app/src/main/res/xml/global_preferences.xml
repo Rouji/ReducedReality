@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title = "Camera">
+        <EditTextPreference
+            android:key="res_hor"
+            android:title="Horizontal Resolution"
+            android:defaultValue="1280"
+            android:inputType="number">
+        </EditTextPreference>
+        <EditTextPreference
+            android:key="res_vert"
+            android:title="Vertical Resolution"
+            android:defaultValue="720"
+            android:inputType="number">
+        </EditTextPreference>
+        <EditTextPreference
+            android:key="fov_hor"
+            android:title="Horizontal FOV"
+            android:defaultValue="70"
+            android:inputType="number"/>
+        <EditTextPreference
+            android:key="fov_vert"
+            android:title="Vertical FOV"
+            android:defaultValue="50"
+            android:inputType="number"/>
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Frame Store">
+        <EditTextPreference
+            android:title="Cell Size"
+            android:defaultValue="5"
+            android:inputType="number"
+            android:key="cell_size"/>
+        <EditTextPreference
+            android:title="Frame Distance"
+            android:defaultValue="30"
+            android:inputType="number"
+            android:key="frame_dist"/>
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Obj. Detection Type">
+        <ListPreference
+            android:title="Type"
+            android:key="maskgen_type"/>
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Colour Key Recog.">
+        <EditTextPreference android:key="low_h" android:title="Lower bound hue" android:inputType="number" android:defaultValue="30"/>
+        <EditTextPreference android:key="low_s" android:title="Lower bound saturation" android:inputType="number" android:defaultValue="60"/>
+        <EditTextPreference android:key="low_v" android:title="Lower bound value" android:inputType="number" android:defaultValue="80"/>
+        <EditTextPreference android:key="high_h" android:title="Upper bound hue" android:inputType="number" android:defaultValue="80"/>
+        <EditTextPreference android:key="high_s" android:title="Upper bound saturation" android:inputType="number" android:defaultValue="255"/>
+        <EditTextPreference android:key="high_v" android:title="Upper bound value" android:inputType="number" android:defaultValue="255"/>
+        <EditTextPreference android:key="downscale_factor" android:title="Downscaling factor" android:inputType="number" android:defaultValue="4"/>
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Debug and Info">
+        <SwitchPreference
+            android:key="statusbar"
+            android:title="Show status bar"
+            android:summary="show a bar at the bottom containing some stats"/>
+    </PreferenceCategory>
+
+</PreferenceScreen>
