@@ -11,7 +11,7 @@ A debug-compiled APK is provided in the root directory, which can be installed u
 
 
 ## Permissions
-For now, the app uses only the old way of specifying permissions in its manifest file. Depending on your ROM you might need to go into the app's permissions and explicitly allow camera access. You should then still be able to run as debug from within Android Studio.
+For now, the app uses only the old way of specifying permissions in its manifest file. Depending on your ROM you might need to go into the app's permissions and explicitly allow camera access.
 
 # Caveat Emptor
 Tested on a few Nexus, Samsung devices and a Oneplus One, all running Lineage OS 14. Apart from performance, functionally it worked the same on all of them. Please be aware, that if you have other hardware or a different ROM things might break. YMMV.
