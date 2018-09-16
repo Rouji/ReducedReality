@@ -97,7 +97,7 @@ public class FrameStore
 
         frames[idx[0]][idx[1]] = new VideoFrame(newFrame, true);
 
-        Log.i(TAG, String.format("stored frame nr %d in field %d,%d",
+        Log.d(TAG, String.format("stored frame nr %d in field %d,%d",
                                  newFrame.frameNumber,
                                  idx[0],
                                  idx[1]));
@@ -166,7 +166,7 @@ public class FrameStore
         }
         if (f != null)
         {
-            Log.i(TAG, String.format("searched from %.2f,%.2f found frame at %.2f,%.2f",
+            Log.d(TAG, String.format("searched from %.2f,%.2f found frame at %.2f,%.2f",
                                      or.yaw,
                                      or.pitch,
                                      f.orientation.yaw,

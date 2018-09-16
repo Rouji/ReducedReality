@@ -80,7 +80,7 @@ public class ORBFrameStitcher implements IFrameStitcher
         Mat mv = translationByOrientation(base, fill);
         Imgproc.warpAffine(fill.rgba, translated, mv, base.rgba.size());
         Imgproc.warpAffine(fill.grey, translatedGrey, mv, base.grey.size());
-        Log.i(TAG, String.format("angle based translation took %.2fms", timer.stopMS()));
+        Log.d(TAG, String.format("angle based translation took %.2fms", timer.stopMS()));
 
         //feature match to make overlap better
         if (useFeatures)
@@ -89,7 +89,7 @@ public class ORBFrameStitcher implements IFrameStitcher
             mv = transformByFeatures(base.grey, translatedGrey, invMask);
             if (mv != null)
                 Imgproc.warpAffine(translated, translated, mv, translated.size());
-            Log.i(TAG, String.format("transform by features took %.2fms", timer.stopMS()));
+            Log.d(TAG, String.format("transform by features took %.2fms", timer.stopMS()));
         }
 
         //blend both images together
@@ -98,7 +98,7 @@ public class ORBFrameStitcher implements IFrameStitcher
         Core.bitwise_and(base.rgba, base.rgba, outside, invMask); //cut hole into base
         //Core.add(inside, outside, out); // segfaults under ALL possible circumstances
         Core.addWeighted(inside, 1.0, outside, 1.0, 0, out);
-        Log.i(TAG, String.format("blending took %.2fms", timer.stopMS()));
+        Log.d(TAG, String.format("blending took %.2fms", timer.stopMS()));
 
 
         //clear inside/outside to black
@@ -132,7 +132,7 @@ public class ORBFrameStitcher implements IFrameStitcher
         Imgproc.resize(fillGrey, scaledFillGrey, new Size((int)(baseGrey.width()/scaleFactor), (int)(baseGrey.height()/scaleFactor)), 0, 0, Imgproc.INTER_NEAREST);
         featureDetector.detect(scaledBaseGrey, key1, invMask);
         featureDetector.detect(scaledFillGrey, key2, invMask);
-        Log.i(TAG, String.format("feature detector took %.2fms", timer.stopMS()));
+        Log.d(TAG, String.format("feature detector took %.2fms", timer.stopMS()));
 
 
         if (key1.empty() || key2.empty())
@@ -143,12 +143,12 @@ public class ORBFrameStitcher implements IFrameStitcher
         descriptorExtractor.compute(scaledFillGrey, key2, des2);
         if (des1.empty() || des2.empty())
             return null;
-        Log.i(TAG, String.format("descriptor extractor took %.2fms", timer.stopMS()));
+        Log.d(TAG, String.format("descriptor extractor took %.2fms", timer.stopMS()));
 
 
         timer.start();
         descriptorMatcher.match(des1, des2, matches);
-        Log.i(TAG, String.format("descriptor matcher took %.2fms", timer.stopMS()));
+        Log.d(TAG, String.format("descriptor matcher took %.2fms", timer.stopMS()));
 
 
         timer.start();
@@ -183,12 +183,12 @@ public class ORBFrameStitcher implements IFrameStitcher
             goodMatches.sort((dMatch, t1) -> (int) Math.abs((dMatch.distance - t1.distance) * 100.0));
             goodMatches = goodMatches.subList(0,40);
         }
-        Log.i(TAG, String.format("filtering good matches took %.2fms", timer.stopMS()));
+        Log.d(TAG, String.format("filtering good matches took %.2fms", timer.stopMS()));
 
 
         timer.start();
         Mat mv = transformByGoodMatches(goodMatches, key1, key2);
-        Log.i(TAG, String.format("transformByGoodMatches took %.2fms", timer.stopMS()));
+        Log.d(TAG, String.format("transformByGoodMatches took %.2fms", timer.stopMS()));
         if (mv.empty())
             return null;
 

@@ -79,7 +79,7 @@ public class OrientationSensorListener implements SensorEventListener
         //shift pitch so 0 is up, 180 is down
         orientation[2] -= 180.0f;
 
-        Log.i(TAG, String.format("yaw: %.2f, smoothed_yaw: %.2f, pitch: %.2f",
+        Log.d(TAG, String.format("yaw: %.2f, smoothed_yaw: %.2f, pitch: %.2f",
                                  oldyaw,
                                  orientation[0],
                                  orientation[2]));

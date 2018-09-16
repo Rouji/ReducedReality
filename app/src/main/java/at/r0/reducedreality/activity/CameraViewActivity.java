@@ -239,7 +239,7 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
         //if (maskGen.generate(f, mask))
             f.mask = mask;
         msGenerateMask = t.stopMS();
-        Log.i(TAG_PERF, String.format("generate() took %.2fms", msGenerateMask));
+        Log.d(TAG_PERF, String.format("generate() took %.2fms", msGenerateMask));
 
         VideoFrame nearest = null;
         if (f.mask == null)
@@ -250,7 +250,7 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
         }
         else
         {
-            Log.i(TAG_PERF, "store size: " + frameStore.getSize());
+            Log.d(TAG_PERF, "store size: " + frameStore.getSize());
 
             t.start();
             nearest = frameStore.getNearest(f.orientation);
@@ -261,11 +261,11 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
             }
             else
             {
-                Log.i(TAG, "filling frame " + f.frameNumber + " with " + nearest.frameNumber);
+                Log.d(TAG, "filling frame " + f.frameNumber + " with " + nearest.frameNumber);
                 t.start();
                 stitcher.stitch(f, nearest, tmp);
                 msStitch = t.stopMS();
-                Log.i(TAG_PERF, String.format("stitch() took %.2fms", msStitch));
+                Log.d(TAG_PERF, String.format("stitch() took %.2fms", msStitch));
                 //inputFrame.gray().copyTo(tmp);
                 //Features2d.drawKeypoints(tmp, stitcher.key1, tmp);
                 out = tmp;
