@@ -89,6 +89,9 @@ public class ORBFrameStitcher implements IFrameStitcher
             mv = transformByFeatures(base.grey, translatedGrey, invMask);
             if (mv != null)
                 Imgproc.warpAffine(translated, translated, mv, translated.size());
+            else
+                Log.d(TAG, String.format("no good matches found, skipping transformation by features", timer.stopMS()));
+
             Log.d(TAG, String.format("transform by features took %.2fms", timer.stopMS()));
         }
 
@@ -130,8 +133,8 @@ public class ORBFrameStitcher implements IFrameStitcher
         timer.start();
         Imgproc.resize(baseGrey, scaledBaseGrey, new Size((int)(baseGrey.width()/scaleFactor), (int)(baseGrey.height()/scaleFactor)), 0, 0, Imgproc.INTER_NEAREST);
         Imgproc.resize(fillGrey, scaledFillGrey, new Size((int)(baseGrey.width()/scaleFactor), (int)(baseGrey.height()/scaleFactor)), 0, 0, Imgproc.INTER_NEAREST);
-        featureDetector.detect(scaledBaseGrey, key1, invMask);
-        featureDetector.detect(scaledFillGrey, key2, invMask);
+        featureDetector.detect(scaledBaseGrey, key1, scaledInvMask);
+        featureDetector.detect(scaledFillGrey, key2, scaledInvMask);
         Log.d(TAG, String.format("feature detector took %.2fms", timer.stopMS()));
 
 
