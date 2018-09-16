@@ -37,8 +37,8 @@ public class GlobalPreferencesActivity extends PreferenceActivity implements Pre
         }
 
         ListPreference listpref = (ListPreference)findPreference("maskgen_type");
-        listpref.setEntryValues(new String[]{"mask_colour", "mask_lbp"});
-        listpref.setEntries(new String[]{"Colour Key", "LBP Cascade Face Detection"});
+        listpref.setEntryValues(new String[]{"mask_colour", "mask_lbp", "mask_hog"});
+        listpref.setEntries(new String[]{"Colour Key", "LBP Cascade Face Detection", "HOG People Detection"});
     }
 
     private List<Preference> getPreferenceList(Preference p, List<Preference> list)

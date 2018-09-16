@@ -8,13 +8,13 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
-public class TiledView
+public class SplitView
 {
-    private final static String TAG = "TiledView";
+    private final static String TAG = "SplitView";
     private Mat tmp;
     private Scalar zeroScalar;
 
-    public TiledView()
+    public SplitView()
     {
     }
 
@@ -56,7 +56,8 @@ public class TiledView
 
                 if (m.type() != out.type())
                 {
-                    m.convertTo(tmp, out.type());
+                    Imgproc.cvtColor(m, tmp, Imgproc.COLOR_GRAY2BGRA);
+                    //m.convertTo(tmp, out.type());
                     Imgproc.resize(tmp, roi, roi.size());
                 }
                 else

@@ -55,6 +55,14 @@
         <EditTextPreference android:key="downscale_factor" android:title="Downscaling factor" android:inputType="number" android:defaultValue="4"/>
     </PreferenceCategory>
     <PreferenceCategory
+        android:title="ORB Stitcher">
+        <EditTextPreference
+            android:key="orb_scale"
+            android:title="Downscale Factor"
+            android:defaultValue="1.0"
+            android:inputType="number"/>
+    </PreferenceCategory>
+    <PreferenceCategory
         android:title="Debug and Info">
         <SwitchPreference
             android:key="statusbar"

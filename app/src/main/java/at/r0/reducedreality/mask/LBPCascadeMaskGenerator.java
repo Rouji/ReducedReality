@@ -17,7 +17,7 @@ import at.r0.reducedreality.data.VideoFrame;
 public class LBPCascadeMaskGenerator implements IReplaceMaskGenerator
 {
     private CascadeClassifier classifier;
-    private MatOfRect faces;
+    private MatOfRect detectedAreas;
     private Scalar whiteScalar;
 
     public LBPCascadeMaskGenerator(File lbpcascadeFile)
@@ -31,18 +31,18 @@ public class LBPCascadeMaskGenerator implements IReplaceMaskGenerator
     public boolean generate(VideoFrame frame, Mat out)
     {
         if (whiteScalar == null) whiteScalar = new Scalar(255);
-        if (faces == null) faces = new MatOfRect();
+        if (detectedAreas == null) detectedAreas = new MatOfRect();
 
 
         classifier.detectMultiScale(frame.grey,
-                                    faces,
+                                    detectedAreas,
                                     1.1,
                                     2,
                                     2,
                                     new Size((int)frame.grey.rows()*0.2,
                                              (int)frame.grey.rows()*0.2),
                                     new Size());
-        if (faces.empty())
+        if (detectedAreas.empty())
             return false;
 
         if (out.size().width != frame.grey.width()
@@ -52,7 +52,7 @@ public class LBPCascadeMaskGenerator implements IReplaceMaskGenerator
             out.create(frame.grey.size(), CvType.CV_8UC1);
         }
         out.setTo(new Scalar(0));
-        for (Rect rect : faces.toArray())
+        for (Rect rect : detectedAreas.toArray())
         {
             Imgproc.circle(out,
                            rectCenter(rect),

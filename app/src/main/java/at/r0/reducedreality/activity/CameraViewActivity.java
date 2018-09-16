@@ -28,11 +28,12 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 
 import at.r0.reducedreality.data.FrameNumberReplacementPolicy;
+import at.r0.reducedreality.mask.HogPeopleMaskGenerator;
 import at.r0.reducedreality.mask.LBPCascadeMaskGenerator;
 import at.r0.reducedreality.stitch.IFrameStitcher;
 import at.r0.reducedreality.stitch.ORBFrameStitcher;
 import at.r0.reducedreality.util.GridPainter;
-import at.r0.reducedreality.util.TiledView;
+import at.r0.reducedreality.util.SplitView;
 import at.r0.reducedreality.util.OrientationSensorListener;
 import at.r0.reducedreality.R;
 import at.r0.reducedreality.data.FrameStore;
@@ -53,7 +54,7 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
     private IReplaceMaskGenerator maskGen;
     private OrientationSensorListener orientation = new OrientationSensorListener();
     //TODO: dynamically get FOV values?
-    private IFrameStitcher stitcher = new ORBFrameStitcher(70, 50, true);
+    private IFrameStitcher stitcher;
     private File cascadeFile;
     private FrameStore frameStore;
     private SharedPreferences pref;
@@ -98,7 +99,7 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
 
         try
         {
-            cascadeFile = FileUtil.resToFile(this, R.raw.lbpcascade_frontalface);
+            cascadeFile = FileUtil.resToFile(this, R.raw.lbpcascade_people);
         }
         catch (IOException e)
         {
@@ -155,6 +156,12 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
     @Override
     public void onCameraViewStarted(int width, int height)
     {
+        if (maskThread != null)
+        {
+            maskThread.stopThread();
+            maskThread = null;
+        }
+
         cameraView.setMaxFrameSize(getInt("res_hor", "1280"),
                                    getInt("res_vert", "720"));
 
@@ -179,8 +186,14 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
         {
             maskGen = new LBPCascadeMaskGenerator(cascadeFile);
         }
+        else if (type.equals("mask_hog"))
+        {
+            maskGen = new HogPeopleMaskGenerator();
+        }
         else
             throw new RuntimeException("unknown mask generator: " + type);
+
+        stitcher = new ORBFrameStitcher(70, 50, getFloat("orb_scale", "1.0"),true);
     }
 
     @Override
@@ -190,10 +203,11 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
 
     private Mat tmp;
     private Mat mask;
-    private TiledView split;
+    private SplitView split;
     private Mat splitMat;
     private Mat grid;
     private NanoTimer frameTime = new NanoTimer();
+    private MaskThread maskThread;
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame)
     {
@@ -202,23 +216,27 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
         float msStitch = 0;
         float msSearch = 0;
 
-        if (split == null) split = new TiledView();
+        if (split == null) split = new SplitView();
         if (tmp == null) tmp = new Mat();
         if (grid == null) grid = new Mat(inputFrame.rgba().size(), CvType.CV_8UC4);
         if (splitMat == null) splitMat = new Mat(inputFrame.rgba().size(), inputFrame.rgba().type());
+        if (mask == null) mask = new Mat();
+        if (maskThread == null) { maskThread = new MaskThread(mask, maskGen); maskThread.start(); }
 
         frameTime.start();
 
-        if (mask == null) mask = new Mat();
         VideoFrame f = new VideoFrame(inputFrame.rgba(),
                                       inputFrame.gray(),
                                       new Orientation(orientation.getOrientation()),
                                       null,
                                       frameNr);
+        maskThread.input(f);
 
         NanoTimer t = new NanoTimer();
         t.start();
-        if (maskGen.generate(f, mask))
+        mask = maskThread.getMask();
+        if (mask != null)
+        //if (maskGen.generate(f, mask))
             f.mask = mask;
         msGenerateMask = t.stopMS();
         Log.i(TAG_PERF, String.format("generate() took %.2fms", msGenerateMask));
@@ -261,7 +279,7 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
             split.createSplitView(splitMat,
                                   2,
                                   2,
-                                  inputFrame.rgba(),
+                                  mask,
                                   nearest == null ? null : nearest.rgba,
                                   out,
                                   grid);
@@ -291,6 +309,60 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
         return out;
     }
 
+    private class MaskThread extends Thread
+    {
+        private Mat mask;
+        private boolean found = false;
+        private volatile VideoFrame input;
+        private IReplaceMaskGenerator gen;
+        private boolean stop = false;
+
+        private MaskThread(Mat mask, IReplaceMaskGenerator gen)
+        {
+            this.mask = mask;
+            this.gen = gen;
+        }
+
+        public void input(VideoFrame newFrame)
+        {
+            input = new VideoFrame(newFrame, true);
+        }
+
+        public Mat getMask()
+        {
+            if (found)
+                return mask.clone();
+            return null;
+        }
+
+        public void run()
+        {
+            if (mask == null) mask = new Mat();
+
+            while (!stop)
+            {
+                if (input == null)
+                {
+                    try
+                    {
+                        Thread.sleep(10);
+                        continue;
+                    }
+                    catch (InterruptedException e)
+                    {
+                        e.printStackTrace();
+                        break;
+                    }
+                }
+
+                found = gen.generate(input, mask);
+                input = null;
+            }
+        }
+
+        public void stopThread() {stop = true;}
+    }
+
     public void prefClick(View view)
     {
         startActivity(new Intent(this, GlobalPreferencesActivity.class));
@@ -317,6 +389,11 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
     private int getInt(String name, String def)
     {
         return Integer.parseInt(pref.getString(name, def));
+    }
+
+    private float getFloat(String name, String def)
+    {
+        return Float.parseFloat(pref.getString(name, def));
     }
 
     public void splitClick(View view)

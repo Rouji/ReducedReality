@@ -37,17 +37,25 @@ public class ORBFrameStitcher implements IFrameStitcher
     private Mat translated;
     private Mat translatedGrey;
     private boolean useFeatures;
+    private float scaleFactor;
+    private FeatureDetector featureDetector;
+    private DescriptorExtractor descriptorExtractor;
+    private DescriptorMatcher descriptorMatcher;
 
     /**
      * @param fovX horizontal FOV of camera/frames
      * @param fovY vertical FOV of camera/frames
      * @param useFeatures use feature matching
      */
-    public ORBFrameStitcher(float fovX, float fovY, boolean useFeatures)
+    public ORBFrameStitcher(float fovX, float fovY, float scaleFactor, boolean useFeatures)
     {
         this.fovX = fovX;
         this.fovY = fovY;
         this.useFeatures = useFeatures;
+        this.scaleFactor = scaleFactor;
+        this.featureDetector = FeatureDetector.create(FeatureDetector.ORB);
+        this.descriptorExtractor = DescriptorExtractor.create(DescriptorExtractor.ORB);
+        this.descriptorMatcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
     }
 
     @Override
@@ -78,7 +86,7 @@ public class ORBFrameStitcher implements IFrameStitcher
         if (useFeatures)
         {
             timer.start();
-            mv = transformByFeatures(base.grey, translatedGrey);
+            mv = transformByFeatures(base.grey, translatedGrey, invMask);
             if (mv != null)
                 Imgproc.warpAffine(translated, translated, mv, translated.size());
             Log.i(TAG, String.format("transform by features took %.2fms", timer.stopMS()));
@@ -100,15 +108,17 @@ public class ORBFrameStitcher implements IFrameStitcher
         return true;
     }
 
-    private FeatureDetector featureDetector;
-    private DescriptorExtractor descriptorExtractor;
-    private DescriptorMatcher descriptorMatcher;
+    private Mat scaledBaseGrey, scaledFillGrey, scaledInvMask;
     /**
      * transformation matrix to match two greyscale images using ORB
      * @return null if no match found
      */
-    private Mat transformByFeatures(Mat baseGrey, Mat fillGrey)
+    private Mat transformByFeatures(Mat baseGrey, Mat fillGrey, Mat invMask)
     {
+        if (scaledBaseGrey == null) scaledBaseGrey = new Mat();
+        if (scaledFillGrey == null) scaledFillGrey = new Mat();
+        if (scaledInvMask == null) scaledInvMask = new Mat();
+
         MatOfKeyPoint key1 = new MatOfKeyPoint();
         MatOfKeyPoint key2 = new MatOfKeyPoint();
         Mat des1 = new Mat();
@@ -118,10 +128,10 @@ public class ORBFrameStitcher implements IFrameStitcher
         NanoTimer timer = new NanoTimer();
 
         timer.start();
-        if (featureDetector == null)
-            featureDetector = FeatureDetector.create(FeatureDetector.ORB);
-        featureDetector.detect(baseGrey, key1, invMask);
-        featureDetector.detect(fillGrey, key2, invMask);
+        Imgproc.resize(baseGrey, scaledBaseGrey, new Size((int)(baseGrey.width()/scaleFactor), (int)(baseGrey.height()/scaleFactor)), 0, 0, Imgproc.INTER_NEAREST);
+        Imgproc.resize(fillGrey, scaledFillGrey, new Size((int)(baseGrey.width()/scaleFactor), (int)(baseGrey.height()/scaleFactor)), 0, 0, Imgproc.INTER_NEAREST);
+        featureDetector.detect(scaledBaseGrey, key1, invMask);
+        featureDetector.detect(scaledFillGrey, key2, invMask);
         Log.i(TAG, String.format("feature detector took %.2fms", timer.stopMS()));
 
 
@@ -129,25 +139,21 @@ public class ORBFrameStitcher implements IFrameStitcher
             return null;
 
         timer.start();
-        if (descriptorExtractor == null)
-            descriptorExtractor = DescriptorExtractor.create(DescriptorExtractor.ORB);
-        descriptorExtractor.compute(baseGrey, key1, des1);
-        descriptorExtractor.compute(fillGrey, key2, des2);
+        descriptorExtractor.compute(scaledBaseGrey, key1, des1);
+        descriptorExtractor.compute(scaledFillGrey, key2, des2);
         if (des1.empty() || des2.empty())
             return null;
         Log.i(TAG, String.format("descriptor extractor took %.2fms", timer.stopMS()));
 
 
         timer.start();
-        if (descriptorMatcher == null)
-            descriptorMatcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
         descriptorMatcher.match(des1, des2, matches);
         Log.i(TAG, String.format("descriptor matcher took %.2fms", timer.stopMS()));
 
 
         timer.start();
         //max distance we allow for matches, roughly 3% of the length of one side of the image
-        double maxDist = ((baseGrey.size().width + baseGrey.size().height) / 2) / 30;
+        double maxDist = ((scaledBaseGrey.size().width + scaledBaseGrey.size().height) / 2) / 30;
 
         //find smallest distance among matches
         DMatch smallest = null;
@@ -182,9 +188,9 @@ public class ORBFrameStitcher implements IFrameStitcher
 
         timer.start();
         Mat mv = transformByGoodMatches(goodMatches, key1, key2);
+        Log.i(TAG, String.format("transformByGoodMatches took %.2fms", timer.stopMS()));
         if (mv.empty())
             return null;
-        Log.i(TAG, String.format("transformByGoodMatches took %.2fms", timer.stopMS()));
 
         return mv;
     }
